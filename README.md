@@ -1,23 +1,5 @@
 # OpenModelica Simulation Launcher
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![PyQt6](https://img.shields.io/badge/PyQt6-6.7-green)
-![License](https://img.shields.io/badge/License-MIT-purple)
-
-## Table of Contents
-
-- [Overview](#overview)
-- [Key Features](#key-features)
-- [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
-- [Installation](#installation)
-- [Building the OpenModelica Executable](#building-the-openmodelica-executable)
-- [Running the Application](#running-the-application)
-- [Usage Guide](#usage-guide)
-- [Repository Structure](#repository-structure)
-- [Simulation Flags Reference](#simulation-flags-reference)
-- [Troubleshooting](#troubleshooting)
-- [License](#license)
 
 ## Overview
 

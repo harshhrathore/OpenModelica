@@ -446,36 +446,3 @@ If you encounter issues not covered here:
 2. Try running the OpenModelica executable manually to isolate the issue
 3. Verify your OpenModelica installation is working correctly
 4. Check that all dependencies are installed: `pip list`
-
----
-
-## Contributing
-
-Contributions are welcome! If you'd like to improve this project:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-Please ensure your code:
-- Follows PEP 8 style guidelines
-- Includes type hints
-- Has appropriate docstrings
-- Passes all linting checks
-
----
-
-## License
-
-MIT License
----
-
-## License- Wait a few seconds for output to appear
-- Check the status bar for simulation state
-- Verify the executable works by running it manually from the command line
-
----
-
-## License

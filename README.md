@@ -15,9 +15,7 @@
 - [Running the Application](#running-the-application)
 - [Usage Guide](#usage-guide)
 - [Repository Structure](#repository-structure)
-- [Architecture](#architecture)
 - [Simulation Flags Reference](#simulation-flags-reference)
-- [Code Quality](#code-quality)
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
 
@@ -26,15 +24,6 @@
 **OpenModelica Simulation Launcher** is a desktop GUI application built with Python and PyQt6 that provides a user-friendly interface for launching and monitoring compiled OpenModelica simulation executables.
 
 The application is specifically designed for the **TwoConnectedTanks** model — a classic fluid-dynamics simulation bundled with OpenModelica that models liquid flow between two interconnected tanks. This launcher eliminates the need for command-line knowledge, making OpenModelica simulations accessible to users of all technical levels.
-
-### What Problem Does This Solve?
-
-OpenModelica compiles models into standalone executables that require command-line parameters. This application:
-- Provides a graphical interface to configure and run simulations
-- Validates input parameters before execution
-- Displays real-time simulation output with color-coded logging
-- Allows users to abort long-running simulations
-- Makes simulation results easily accessible
 
 ## Key Features
 
@@ -418,127 +407,7 @@ pairs:
 
 ---
 
-## Architecture
-
-### Design Overview
-
-The application follows a clean separation of concerns with three main layers:
-
-1. **GUI Layer** (`app/gui/`) — User interface components and styling
-2. **Core Layer** (`app/core/`) — Business logic for validation and execution
-3. **Utils Layer** (`app/utils/`) — Shared utilities like logging
-
-### Class Diagram
-
-```
-main.py
-  └─ MainWindow(QMainWindow)
-        ├─ PathSelectorWidget(QWidget)   — File path input + browse button
-        ├─ QSpinBox × 2                  — Start/stop time inputs
-        ├─ LogPanel(QWidget)             — Color-coded output display
-        ├─ SimulationRunner(QThread)     — Background subprocess execution
-        │     signals: output(str)       — Emits stdout lines
-        │              error(str)        — Emits stderr lines
-        │              finished(int)     — Emits exit code
-        │     uses: SimulationConfig     — Configuration dataclass
-        └─ InputValidator                — Static validation methods
-              raises: ValidationError    — Custom exception
-
-AppLogger (singleton)                   — Application-wide logging
-```
-
-### Component Responsibilities
-
-| Module                   | Class/Component                                                 | Responsibility                                      |
-| ------------------------ | --------------------------------------------------------------- | --------------------------------------------------- |
-| `main.py`                | `main()`                                                        | Application entry point, PyQt6 initialization       |
-| `app/gui/main_window.py` | `MainWindow`                                                    | Main window layout, event handling, state management |
-| `app/gui/widgets.py`     | `PathSelectorWidget`                                            | File path input with browse button                  |
-|                          | `LogPanel`                                                      | Color-coded log display with timestamps             |
-|                          | `SectionCard`                                                   | Styled container for UI sections                    |
-|                          | `HeaderBanner`                                                  | Application title and description                   |
-| `app/gui/styles.py`      | Constants & QSS                                                 | Color palette and stylesheet definitions            |
-| `app/core/runner.py`     | `SimulationRunner`                                              | Execute simulation in background thread             |
-| `app/core/validator.py`  | `InputValidator`                                                | Validate user inputs before execution               |
-|                          | `SimulationConfig`                                              | Dataclass for simulation configuration              |
-|                          | `ValidationError`                                               | Custom exception for validation failures            |
-| `app/utils/logger.py`    | `AppLogger`                                                     | Singleton logger for application-wide logging       |
-
-### Key Design Patterns
-
-- **Singleton Pattern** — `AppLogger` ensures a single logging instance
-- **Observer Pattern** — PyQt6 signals/slots for event-driven communication
-- **Thread Pattern** — `SimulationRunner` runs in a separate thread to prevent UI blocking
-- **Dataclass Pattern** — `SimulationConfig` provides immutable configuration
-- **Validation Pattern** — `InputValidator` centralizes all validation logic
-
----
-
-## Code Quality
-
-This project follows professional Python development standards:
-
-### Coding Standards
-
-- **PEP 8 Compliance** — All code formatted to 88-character line length (Black-compatible)
-- **Type Hints** — Every function signature includes type annotations (PEP 484)
-- **Docstrings** — Google-style docstrings on all classes and public methods
-- **Object-Oriented Design** — Clean separation of concerns with single-responsibility classes
-- **Explicit Imports** — No wildcard imports; all dependencies are explicit
-- **Constants** — Defined in `UPPER_SNAKE_CASE` at module level for clarity
-
-### Running Code Quality Tools
-
-**Check PEP 8 compliance:**
-```bash
-pycodestyle app/ main.py --max-line-length=88
-```
-
-**Run Pylint analysis:**
-```bash
-pylint app/ main.py
-```
-
-**Run tests (if available):**
-```bash
-pytest tests/ -v
-```
-
----
-
 ## Troubleshooting
-
-### Common Issues and Solutions
-
-#### Issue: "Executable not found" error
-
-**Cause:** The file path is incorrect or the file doesn't exist.
-
-**Solution:**
-- Verify the path is correct
-- Ensure you're pointing to the executable file, not the `.mo` source file
-- Check that all files from the compilation are in the same directory
-
-#### Issue: "The file is not executable" (Linux only)
-
-**Cause:** The file doesn't have execute permissions.
-
-**Solution:**
-```bash
-chmod +x /path/to/TwoConnectedTanks
-```
-
-#### Issue: Simulation fails immediately with exit code 1
-
-**Cause:** Missing initialization files or incorrect working directory.
-
-**Solution:**
-- Ensure `TwoConnectedTanks_init.xml` is in the same directory as the executable
-- Verify all `.dll` (Windows) or `.so` (Linux) files are present
-- Try running the executable manually from the command line to see detailed error messages
-
-#### Issue: GUI doesn't open or crashes on startup
-
 **Cause:** PyQt6 installation issue or missing dependencies.
 
 **Solution:**
@@ -601,23 +470,12 @@ Please ensure your code:
 ## License
 
 MIT License
+---
 
-Copyright (c) 2024
+## License- Wait a few seconds for output to appear
+- Check the status bar for simulation state
+- Verify the executable works by running it manually from the command line
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+---
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+## License

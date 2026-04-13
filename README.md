@@ -160,24 +160,133 @@ If the GUI window opens successfully, the installation is complete!
 2. Run the installer for your operating system
 3. This will install both the OpenModelica compiler and **OMEdit** (the graphical model editor)
 
-### Step 2: Open OMEdit and Load the Model
+### Step 2: Download the Model Package and Load it in OMEdit
 
-**Method A: Using the Libraries Browser (Recommended)**
+#### Download the Model Files
+
+The model package is provided by FOSSEE and can be accessed via the Google Drive link referenced in the FOSSEE task documentation: https://drive.google.com/drive/folders/13t_4tinG6vY4wNnlxnbhNJsWE4-LxHot?usp=sharing Download it and extract 
+the folder. You will find these files inside:
+
+| File                  | Purpose                                      |
+|-----------------------|----------------------------------------------|
+| `package.mo`          | Package entry point — open THIS file first   |
+| `package.order`       | Defines load order of models in the package  |
+| `TwoConnectedTanks.mo`| Top-level simulation model                   |
+| `Tank.mo`             | First tank model                             |
+| `Tank2.mo`            | Second tank model (requires a fix — see below)|
+| `FlowConnect.mo`      | Connector interface between tanks            |
+
+#### Open the Package in OMEdit
 
 1. Launch **OMEdit**
-2. In the left panel, navigate to **Libraries → Modelica → Fluid → Examples**
-3. Look for **TwoConnectedTanks** (you can also use the search bar)
-4. Double-click the model to open it
+2. Go to **File → Open Model/Library File**
+3. Navigate to the downloaded folder and select **`package.mo`**
+   *(Do NOT open individual `.mo` files — opening `package.mo` 
+   loads the entire `NonInteractingTanks` package at once)*
+4. The package `NonInteractingTanks` will appear in the 
+   **Libraries Browser** on the left panel
+5. Expand it — you will see: `Tank`, `Tank2`, `FlowConnect`, 
+   and `TwoConnectedTanks`
 
-**Method B: Opening the .mo File Directly**
+#### Fix the Bug in Tank2.mo (Required Before Simulating)
 
-1. In OMEdit, go to **File → Open Model/Library File**
-2. Navigate to the OpenModelica library directory:
-   - **Windows:** `C:\Program Files\OpenModelica1.21.0\lib\omlibrary\Modelica\Fluid\Examples\`
-   - **Linux:** `/usr/lib/omlibrary/Modelica/Fluid/Examples/` or `/opt/openmodelica/lib/omlibrary/Modelica/Fluid/Examples/`
-3. Select `TwoConnectedTanks.mo` and click **Open**
+When you first open the package and try to simulate, OpenModelica 
+will throw a **division by zero** error. This is a known bug in the 
+default `Tank2.mo` file. You must fix it manually before proceeding.
 
-> **Can't find the library path?** In OMEdit, go to **Tools → Options → Libraries** to see where OpenModelica installed its standard libraries.
+**What the bug is:**
+- `Q1` has no initial value, so at `t=0` it can be `0`
+- The equation `T = V/(Q1)` causes division by zero
+- No start values are defined for `h` or `Q1`
+
+**How to fix it:**
+
+Open `Tank2.mo` in a text editor (or double-click it in OMEdit 
+to edit inline) and make these two changes:
+
+**Change 1 — Add start values to variable declarations:**
+
+```modelica
+// BEFORE (default — broken):
+Real h, Q1, T;
+
+// AFTER (fixed):
+Real h(start = 1.0), Q1(start = 0.1), T;
+```
+
+**Change 2 — Add a small epsilon to prevent division by zero:**
+
+```modelica
+// BEFORE (default — broken):
+T = V/(Q1);
+
+// AFTER (fixed):
+T = V/(Q1 + 0.001);
+```
+
+**Complete fixed `Tank2.mo` for reference:**
+
+```modelica
+within NonInteractingTanks;
+
+model Tank2
+  parameter Real A = 1, V = 10;
+  Real h(start = 1.0), Q1(start = 0.1), T;
+
+  FlowConnect flowConnect annotation(
+    Placement(visible = true, transformation(
+      origin = {-42, 42}, extent = {{-10, -10}, {10, 10}}, 
+      rotation = 0), 
+    iconTransformation(
+      origin = {-36, 34}, extent = {{-10, -10}, {10, 10}}, 
+      rotation = 0)));
+
+equation
+  Q1 = flowConnect.F;
+  der(h) = Q1 / A;
+  T = V / (Q1 + 0.001);
+
+  annotation(
+    Icon(graphics = {
+      Line(origin = {-13, 13.5}, 
+        points = {{-35, 28.5}, {-35, -31.5}, {33, -31.5}, 
+                  {35, -31.5}, {35, 26.5}, {35, 28.5}, {35, 24.5}}), 
+      Text(lineColor = {0, 0, 255}, 
+        extent = {{0, 30}, {50, 80}}, textString = "%name")}),
+    Diagram(graphics = {
+      Text(origin = {-44, 45}, 
+        extent = {{-2, -1}, {2, 1}}, textString = "text")}));
+end Tank2;
+```
+
+> **Save the file** after making these changes. In OMEdit, press 
+> **Ctrl+S** or go to **File → Save**.
+
+#### Verify the Fix
+
+After saving:
+
+1. In the Libraries Browser, right-click **`TwoConnectedTanks`**
+2. Select **Simulate**
+3. OMEdit will compile and run the simulation
+4. If successful, you will see a plot window open with simulation 
+   results — this confirms the fix worked
+
+> **Where are the output files?**  
+> After a successful simulation, OpenModelica saves the compiled 
+> executable and output files to a temporary working directory:
+> - **Windows:** ``%APPDATA%\OMEdit\TwoConnectedTanks\`` 
+>   or `%TEMP%\`
+> - **Linux:** `/tmp/` or `~/tmp/`
+> 
+> Look for files named:
+> - `TwoConnectedTanks.exe` (Windows) / `TwoConnectedTanks` (Linux) 
+>   — the compiled executable
+> - `TwoConnectedTanks_res.mat` — simulation result data
+> - `TwoConnectedTanks_init.xml` — initial values file
+> 
+> **Keep all files in the same folder.** The executable depends on 
+> the `.xml` file and any `.dll`/`.so` libraries present alongside it.
 
 ### Step 3: Compile the Model
 
@@ -254,34 +363,7 @@ When you first launch the application:
 
 ## Usage Guide
 
-### Application Interface
 
-The application window consists of several sections:
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  🔬 OpenModelica Simulation Launcher                        │
-│     Execute compiled TwoConnectedTanks simulations          │
-├─────────────────────────────────────────────────────────────┤
-│  SIMULATION CONFIGURATION                                   │
-│                                                             │
-│  Executable Path  [ /path/to/TwoConnectedTanks  ] [Browse] │
-│  Start Time (s)   [ − ] [ 0 ] [ + ]                        │
-│  Stop Time  (s)   [ − ] [ 4 ] [ + ]                        │
-├─────────────────────────────────────────────────────────────┤
-│               [ ▶  Run Simulation ]  [ ■ Stop ]            │
-│  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ (progress bar, visible while running)    │
-├─────────────────────────────────────────────────────────────┤
-│  Logs                                           [Clear Log] │
-│  SIMULATION OUTPUT                                          │
-│  [10:42:01] Starting simulation: /path/to/…                │
-│  [10:42:01] LOG_SUCCESS: Simulation initialized            │
-│  [10:42:02] Simulation finished successfully (exit 0).     │
-│  [10:42:02] Output saved to: TwoConnectedTanks_res.mat     │
-├─────────────────────────────────────────────────────────────┤
-│  Status: Finished (exit 0)                                  │
-└─────────────────────────────────────────────────────────────┘
-```
 
 ### Step-by-Step Instructions
 
